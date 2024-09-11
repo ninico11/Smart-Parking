@@ -22,15 +22,15 @@
   - Websocket (websockets library)
 ## Data Managment
 * Parking lots managment service:
-
+```
     /api/parking/lots - Retrieves the list of available parking lots along with their status (available, reserved, occupied).
     /api/parking/lots/<lot_id> - Retrieves detailed information about a specific parking lot.
     /api/parking/reservations - Makes a parking reservation for the user, specifying the parking lot and time.
     /api/parking/reservations/cancel - Cancels an existing parking reservation.
     /api/parking/lots/update - Updates the status of a parking lot based on sensor data or manual entry.
-
+```
 * User managment service:
-  
+```
     /api/users/auth/signup - Creates a new user account with required details
     /api/users/auth/signin - Authenticates a user and generates a session token.
     /api/users/auth/signout - Invalidates a user session and logs out the user.
@@ -40,7 +40,7 @@
     /api/users/notifications/mark-as-read - Marks specific notifications as read for the user.
     /api/users/notifications/ws - WebSocket endpoint for real-time notifications
     /api/users/reservations - Retrieves the user's past parking reservations.
-
+```
 ## Deployment and Scaling
 Docker containers will be created for deployment, and Docker compose will be used for scalability and administration.
   
