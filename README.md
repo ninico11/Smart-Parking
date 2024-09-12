@@ -22,7 +22,6 @@
   - Websocket (websockets library)
 ## Data Managment
 * Parking lots managment service:
-```
 1. Endpoint: `/api/parking/lots`
    - **Method**: GET
    - **Received Data**: None
@@ -157,8 +156,6 @@
            "msg": "Parking lot not found"
        }
        ```
-
-```
 * User managment service:
 ```
     /api/users/auth/signup - Creates a new user account with required details
