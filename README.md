@@ -22,6 +22,13 @@
   - Websocket (websockets library)
 ## Data Managment
 * Parking lots managment service:
+```
+  /api/parking/lots - Retrieves the list of available parking lots along with their status (available, reserved, occupied).
+  /api/parking/lots/<lot_id> - Retrieves detailed information about a specific parking lot.
+  /api/parking/reservations - Makes a parking reservation for the user, specifying the parking lot and time.
+  /api/parking/reservations/cancel - Cancels an existing parking reservation.
+  /api/parking/lots/update - Updates the status of a parking lot based on sensor data or manual entry.
+```
 1. Endpoint: `/api/parking/lots`
    - **Method**: GET
    - **Received Data**: None
