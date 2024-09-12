@@ -175,6 +175,221 @@
     /api/users/notifications/ws - WebSocket endpoint for real-time notifications
     /api/users/reservations - Retrieves the user's past parking reservations.
 ```
+1. Endpoint: `/api/users/auth/signup`
+   - **Method**: POST
+   - **Received Data**: 
+     ```json
+     {
+         "name": "string",
+         "email": "string",
+         "password": "string"
+     }
+     ```
+   - **Responses**:
+     - **201**:
+       ```json
+       {
+           "msg": "User successfully created"
+       }
+       ```
+     - **400**:
+       ```json
+       {
+           "msg": "Invalid input"
+       }
+       ```
+     - **409**:
+       ```json
+       {
+           "msg": "User already exists"
+       }
+       ```
+
+---
+
+2. Endpoint: `/api/users/auth/signin`
+   - **Method**: POST
+   - **Received Data**: 
+     ```json
+     {
+         "email": "string",
+         "password": "string"
+     }
+     ```
+   - **Responses**:
+     - **200**:
+       ```json
+       {
+           "token": "string",
+           "msg": "Login successful"
+       }
+       ```
+     - **401**:
+       ```json
+       {
+           "msg": "Invalid credentials"
+       }
+       ```
+
+---
+
+3. Endpoint: `/api/users/auth/signout`
+   - **Method**: POST
+   - **Received Data**: None
+   - **Responses**:
+     - **200**:
+       ```json
+       {
+           "msg": "Logged out successfully"
+       }
+       ```
+     - **401**:
+       ```json
+       {
+           "msg": "User not authenticated"
+       }
+       ```
+
+---
+
+4. Endpoint: `/api/users/profile`
+   - **Method**: GET
+   - **Received Data**: None
+   - **Responses**:
+     - **200**:
+       ```json
+       {
+           "name": "string",
+           "email": "string",
+           "created_at": "datetime"
+       }
+       ```
+     - **401**:
+       ```json
+       {
+           "msg": "User not authenticated"
+       }
+       ```
+
+---
+
+5. Endpoint: `/api/users/profile/update`
+   - **Method**: PUT
+   - **Received Data**:
+     ```json
+     {
+         "name": "string",
+         "email": "string"
+     }
+     ```
+   - **Responses**:
+     - **200**:
+       ```json
+       {
+           "msg": "Profile updated successfully"
+       }
+       ```
+     - **400**:
+       ```json
+       {
+           "msg": "Invalid input data"
+       }
+       ```
+     - **401**:
+       ```json
+       {
+           "msg": "User not authenticated"
+       }
+       ```
+
+---
+
+6. Endpoint: `/api/users/notifications`
+   - **Method**: GET
+   - **Received Data**: None
+   - **Responses**:
+     - **200**:
+       ```json
+       {
+           "notifications": [
+               {
+                   "notification_id": "string",
+                   "content": "string",
+                   "read": "boolean",
+                   "created_at": "datetime"
+               }
+           ]
+       }
+       ```
+     - **401**:
+       ```json
+       {
+           "msg": "User not authenticated"
+       }
+       ```
+
+---
+
+7. Endpoint: `/api/users/notifications/mark-as-read`
+   - **Method**: POST
+   - **Received Data**:
+     ```json
+     {
+         "notification_ids": ["string"]
+     }
+     ```
+   - **Responses**:
+     - **200**:
+       ```json
+       {
+           "msg": "Notifications marked as read"
+       }
+       ```
+     - **400**:
+       ```json
+       {
+           "msg": "Invalid notification IDs"
+       }
+       ```
+     - **401**:
+       ```json
+       {
+           "msg": "User not authenticated"
+       }
+       ```
+
+---
+
+8. Endpoint: `/api/users/notifications/ws`
+   - **Method**: WebSocket
+   - **Received Data**: None (real-time connection)
+   - **Responses**: Real-time notifications sent to the client via WebSocket
+
+---
+
+9. Endpoint: `/api/users/reservations`
+   - **Method**: GET
+   - **Received Data**: None
+   - **Responses**:
+     - **200**:
+       ```json
+       {
+           "reservations": [
+               {
+                   "reservation_id": "string",
+                   "lot_id": "string",
+                   "reserved_at": "datetime",
+                   "status": "string"
+               }
+           ]
+       }
+       ```
+     - **401**:
+       ```json
+       {
+           "msg": "User not authenticated"
+       }
+       ```
 ## Deployment and Scaling
 Docker containers will be created for deployment, and Docker compose will be used for scalability and administration.
   
