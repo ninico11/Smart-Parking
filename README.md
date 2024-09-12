@@ -20,6 +20,7 @@
   - PostgreSQL
   - Redis
   - Websocket (websockets library)
+-Add for gateway
 ## Data Managment
 * Parking lots managment service:
 ```
@@ -330,7 +331,7 @@
 
 ---
 
-7. Endpoint: `/api/users/notifications/mark-as-read`
+7. Endpoint: `/api/users/notifications/mark-as-read` Can be done via ws
    - **Method**: POST
    - **Received Data**:
      ```json
@@ -360,14 +361,9 @@
 
 ---
 
-8. Endpoint: `/api/users/notifications/ws`
+8. Endpoint: `/api/users/notifications/{region}`
    - **Method**: WebSocket
-   - **Received Data**:
-     ```json
-     {
-         "region": "string"
-     }
-     ```
+   - **Received Data**: The data will be used in endpoint link
    - **Responses**: Real-time notifications sent to the client via WebSocket
 
 ---
