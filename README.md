@@ -362,7 +362,12 @@
 
 8. Endpoint: `/api/users/notifications/ws`
    - **Method**: WebSocket
-   - **Received Data**: None (real-time connection)
+   - **Received Data**:
+     ```json
+     {
+         "region": "string"
+     }
+     ```
    - **Responses**: Real-time notifications sent to the client via WebSocket
 
 ---
