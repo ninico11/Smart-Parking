@@ -20,7 +20,8 @@
   - PostgreSQL
   - Redis
   - Websocket (websockets library)
--Add for gateway
+-API Gateway
+  - Javascript (Express.js)
 ## Data Managment
 * Parking lots managment service:
 ```
