@@ -1,14 +1,15 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-from . import db
+from . import db, socketio
 from .models import User, Notification, Reservation
 from app.parking_request import reserve_parking_lot
 from app.redis_db import get_user_session, save_user_session
+from flask_socketio import emit, join_room, leave_room
 
 user_blueprint = Blueprint('user_apis', __name__)
 
-@user_blueprint.route('/api/users/status', methods=['GET'])
+@user_blueprint.route('/status', methods=['GET'])
 def user_service_status():
     try:
         # If needed, you can add more checks here, such as database connection status
@@ -38,12 +39,13 @@ def signup():
     email = data.get('email')
     password = data.get('password')
     full_name = data.get('full_name')
+    address = data.get('address')
     
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "User with this email already exists"}), 400
     
     hashed_password = generate_password_hash(password)
-    new_user = User(email=email, password=hashed_password, full_name=full_name)
+    new_user = User(email=email, password=hashed_password, full_name=full_name, address=address)
     
     db.session.add(new_user)
     db.session.commit()
@@ -56,13 +58,19 @@ def signin():
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
-    
+
     user = User.query.filter_by(email=email).first()
-    
+
     if not user or not check_password_hash(user.password, password):
         return jsonify({"error": "Invalid credentials"}), 401
-    
+
+    if not user.address:
+        return jsonify({"error": "Please add your address to receive notifications"}), 403
+
+    # Generate access token
     access_token = create_access_token(identity=user.id)
+
+    # Save user session
     user_data = {
         "email": user.email,
         "full_name": user.full_name,
@@ -73,14 +81,24 @@ def signin():
         "updated_at": user.updated_at
     }
     save_user_session(user.id, user_data)
+
+    # Automatically join WebSocket room for the user's address
+    socketio.emit('join_region', {'region': user.address}, room=user.id)
+
     return jsonify({"access_token": access_token}), 200
 
 # Signout route (invalidating the token can be managed using JWT blacklisting or other logic)
 @user_blueprint.route('/api/users/auth/signout', methods=['POST'])
 @jwt_required()
 def signout():
-    # Implement token revocation logic here if needed
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    # Leave the WebSocket room when the user logs out
+    socketio.emit('leave_region', {'region': user.address}, room=user_id)
+
     return jsonify({"message": "User signed out successfully"}), 200
+
 
 # Fetch user profile
 @user_blueprint.route('/api/users/profile', methods=['GET'])
@@ -206,3 +224,48 @@ def get_reservations():
             "status": r.status
         } for r in reservations
     ]), 200
+    
+@socketio.on('connect')
+def handle_connect():
+    """Handle new WebSocket connection."""
+    emit('connected', {'message': 'WebSocket connected successfully'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    """Handle WebSocket disconnection."""
+    print('Client disconnected')
+
+@socketio.on('join_region')
+def join_region(data):
+    """Join a specific region room."""
+    region = data.get('region')
+    if region:
+        join_room(region)
+        emit('joined_region', {'message': f'Joined region {region}'}, room=region)
+
+@socketio.on('leave_region')
+def leave_region(data):
+    """Leave a specific region room."""
+    region = data.get('region')
+    if region:
+        leave_room(region)
+        emit('left_region', {'message': f'Left region {region}'}, room=region)
+
+@user_blueprint.route('/api/users/notification/<region>', methods=['POST'])
+def send_notification(region):
+    """Send notification to users in the specified region."""
+    data = request.get_json()
+    message = data.get('message')
+
+    if not message:
+        return jsonify({'error': 'Message is required'}), 400
+
+    # Fetch users from the database based on region
+    users_in_region = User.query.filter_by(address=region).all()
+    if not users_in_region:
+        return jsonify({'error': 'No users found in this region'}), 404
+
+    # Broadcast the message to the WebSocket room for the region
+    socketio.emit('notification', {'message': message}, room=region)
+
+    return jsonify({'message': 'Notification sent successfully'}), 200

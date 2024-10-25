@@ -1,0 +1,89 @@
+services:
+  service-discovery:
+    build: ./ServiceDiscovery
+    ports:
+      - "3000:3000"
+    environment:
+      - SERVICE_DISCOVERY_PORT = 3000
+
+  gateway:
+    build: ./APIGateway
+    ports:
+      - "5000:5000"
+    environment:
+      - SERVICE_DISCOVERY_HOST=service-discovery:3000
+      - API_GATEWAY_PORT = 5000
+    depends_on:
+      - service-discovery
+
+  user-service-1:
+    build: ./User_Service
+    ports:
+      - "8080:8080"
+    environment:
+      - USER_SERVICE_ADDRESS=http://user-service-1
+      - USER_SERVICE_PORT=8080
+      - USER_SERVICE_NAME = user-service-1
+      - SERVICE_DISCOVERY_HOST=service-discovery:3000
+    depends_on:
+      - service-discovery
+  
+  user-service-2:
+    build: ./User_Service
+    ports:
+      - "8081:8080"
+    environment:
+      - USER_SERVICE_ADDRESS=http://user-service-2
+      - USER_SERVICE_PORT=8080
+      - USER_SERVICE_NAME = user-service-2
+      - SERVICE_DISCOVERY_HOST=service-discovery:3000
+    depends_on:
+      - service-discovery
+
+  parking-service-1:
+    build: ./Parking_Service
+    ports:
+      - "8000:8000"
+    environment:
+      - PARKING_SERVICE_ADDRESS=http://parking-service-1
+      - PARKING_SERVICE_PORT=8000
+      - DATABASE_URL=postgresql://user:password@postgres:1234/postgres_user
+      - PARKING_SERVICE_NAME = parking-service-1
+      - SERVICE_DISCOVERY_HOST=service-discovery:3000
+    depends_on:
+      - service-discovery
+
+  parking-service-2:
+    build: ./Parking_Service
+    ports:
+      - "8001:8000"
+    environment:
+      - PARKING_SERVICE_ADDRESS=http://parking-service-1
+      - PARKING_SERVICE_PORT=8000
+      - PARKING_SERVICE_NAME = parking-service-1
+      - SERVICE_DISCOVERY_HOST=service-discovery:3000
+    depends_on:
+      - service-discovery
+
+  postgres:
+    image: postgres:12.20-alpine3.20
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres_user
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "1234:5432"
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27000:27017"
+
+volumes:
+  postgres_data:

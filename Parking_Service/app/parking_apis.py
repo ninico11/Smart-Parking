@@ -11,7 +11,7 @@ reservations_collection = db['reservations']
 
 parking_blueprint = Blueprint('parking_apis', __name__)
 
-@parking_blueprint.route('/api/parking/status', methods=['GET'])
+@parking_blueprint.route('/status', methods=['GET'])
 def parking_service_status():
     try:
         # Optionally check MongoDB connection here to ensure the service is operational
@@ -82,11 +82,12 @@ def add_parking_lots():
 def make_reservation():
     data = request.get_json()
     print('here')
+    print(data)
     parking_lot_id = data.get('parking_lot_id')
     user_id = data.get('user_id')
     start_time = data.get('start_time')
     end_time = data.get('end_time')
-
+    
     # Convert time strings to datetime objects
     try:
         start_time = datetime.datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
@@ -100,7 +101,7 @@ def make_reservation():
 
     # Check if the parking lot is available
     if parking_lot['status'] != 'available':
-        return jsonify({"error": "Parking lot is not available"}), 400
+        return jsonify({"error": "Parking lot is not available"}), 201
 
     # Create the reservation
     reservation = {
