@@ -424,7 +424,7 @@ docker-compose -f docker-compose.yml up --build
 Docker containers will be created for deployment, and Docker compose will be used for scalability and administration.
   
 ## Service Boundaries (Lab 2)
-![Architecture](./Check_PAD.drawio.png)
+![Architecture_new](./Check_PAD.drawio.png)
 
 1. Implement **read replication** for user data by setting up two dedicated read replicas to distribute and balance query load.
 2. Use a **Two-Phase Commit (2PC)** mechanism, managed by a Transaction Coordinator within the API Gateway, to ensure safe and atomic update of user data.
