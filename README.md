@@ -430,3 +430,4 @@ Docker containers will be created for deployment, and Docker compose will be use
 2. Use a **Two-Phase Commit (2PC)** mechanism, managed by a Transaction Coordinator within the API Gateway, to ensure safe and atomic update of user data.
 3. Integrate a **Data Warehouse** to enable comprehensive managing of user reservations and analyzing parking slots.
 4. Deploy the **ELK stack** to centralize and process logs across all system instances, enhancing monitoring and troubleshooting capabilities.
+5. Deploy a Redis cluster to enable sharded caching of user data using consistent hashing.
