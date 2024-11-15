@@ -1,0 +1,382 @@
+{
+	"info": {
+		"_postman_id": "67343984-3d81-43f1-aba4-60dc98bee76f",
+		"name": "Checkpoint 2",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29612237"
+	},
+	"item": [
+		{
+			"name": "SignUp",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"email\": \"emails@example.com\",\r\n\"password\":\"password\",\r\n\"full_name\": \"Ion Rotaru\",\r\n\"address\": \"Center\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:5000/user/api/users/auth/signup",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"api",
+						"users",
+						"auth",
+						"signup"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/user/api/users",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"api",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Parking Status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/parking/status",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"parking",
+						"status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Users Status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/user/api/users/status",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"user",
+						"api",
+						"users",
+						"status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Parking lots",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/parking/api/parking/lots",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"parking",
+						"api",
+						"parking",
+						"lots"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Parking lots",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"location\": \"Centru\",\r\n    \"nr_of_lots\": 10\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/parking/api/parking/lots/add",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"parking",
+						"api",
+						"parking",
+						"lots",
+						"add"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Profile",
+			"request": {
+				"auth": {
+					"type": "jwt",
+					"jwt": [
+						{
+							"key": "headerPrefix",
+							"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcyNzM5ODg4OSwianRpIjoiZDQ1MmQzMWItOThhMC00M2E5LTg4NDUtOGUyNTU3ZTM1ZjQ0IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6MSwibmJmIjoxNzI3Mzk4ODg5LCJjc3JmIjoiMjc4MjY0ZmYtYzdiZS00MjdmLTgzOWItZGU3ZWI1MDlkNWUyIiwiZXhwIjoxNzI3Mzk5Nzg5fQ.6v7dYcbiMAriVRTXQ1rfZBKqlqmKNOR0Rn99w35xG5M",
+							"type": "string"
+						},
+						{
+							"key": "header",
+							"value": "{}",
+							"type": "string"
+						},
+						{
+							"key": "algorithm",
+							"value": "HS256",
+							"type": "string"
+						},
+						{
+							"key": "isSecretBase64Encoded",
+							"value": false,
+							"type": "boolean"
+						},
+						{
+							"key": "payload",
+							"value": "{}",
+							"type": "string"
+						},
+						{
+							"key": "addTokenTo",
+							"value": "header",
+							"type": "string"
+						},
+						{
+							"key": "queryParamKey",
+							"value": "token",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcyOTg3ODI4NCwianRpIjoiNWIxZGFiYWQtNThjZi00ZDA0LThmMGMtZTM4MWM1ZmRiNjQwIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6MSwibmJmIjoxNzI5ODc4Mjg0LCJjc3JmIjoiYWM0Y2Q2MTAtZWUzYS00NWVkLWI5NTEtZTNhMjBkMWRiMzM4IiwiZXhwIjoxNzI5ODgxODg0fQ.oXjKX_8V9Ony6SisPT0wwQCTtdWQrpl0jkpfK0qvX6s",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost:5000/user/api/users/profile",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"api",
+						"users",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User SignIn",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"emails@example.com\",\r\n    \"password\": \"password\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:5000/user/api/users/auth/signin",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"api",
+						"users",
+						"auth",
+						"signin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Reservations",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:5000/parking/api/parking/reservations",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"parking",
+						"api",
+						"parking",
+						"reservations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reserve",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTcyOTgyNDA5MCwianRpIjoiZTM5ZjFhZDItM2ExYi00YzJkLTliMjUtZjM0MzEzNzQ3YjNkIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6MiwibmJmIjoxNzI5ODI0MDkwLCJjc3JmIjoiODBiNGMwZjgtOTczZi00NjBiLWJmNzEtY2Q4NTcwYjQyN2M5IiwiZXhwIjoxNzI5ODI3NjkwfQ.4-duQQrVwUFFgZs2AXS-o92RB3T0DjKii6SsIc_D6og",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"parking_lot_id\": \"66f5f843b21a2ab2aaf86290\",\r\n    \"start_time\": \"2024-09-26 14:26:43\",\r\n    \"end_time\": \"2024-09-26 16:26:43\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:5000/user/api/users/reserve",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"api",
+						"users",
+						"reserve"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Cancel Reservation",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"reservation_id\": \"66f60fd49372ff20e9d69850\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/parking/api/parking/reservations/cancel",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"parking",
+						"api",
+						"parking",
+						"reservations",
+						"cancel"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Websocket Notification",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"message\": \"Hello\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:5000/user/api/users/notification/north",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"api",
+						"users",
+						"notification",
+						"north"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

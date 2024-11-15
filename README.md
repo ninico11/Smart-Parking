@@ -1,4 +1,32 @@
 # Smart-Parking
+**In order to run the app**, have Docker installed on your machine and execute the following command:
+```
+docker-compose -f docker-compose.yml up --build
+```
+
+**In order to run the tests** for Parking_Service:
+
+1. Create a virtual environment
+
+
+        python -m vevn env
+
+2. Activate it
+
+
+        For Linux:   source env/bin/activate
+        For Windows: env\Scripts\activate
+
+3. Install the dependencies
+
+
+        pip install -r Parking_Service/requirements.txt
+
+4. Run the tests
+
+
+        pytest Parking_Service/unit_test_parking.py
+
 ## Application Suitability
 1. Why is this application relevant?
 - Universities often face challenges with limited parking spaces. A smart system can optimize parking allocation, reducing time spent by students and faculty searching for spaces.
@@ -395,3 +423,11 @@
 ## Deployment and Scaling
 Docker containers will be created for deployment, and Docker compose will be used for scalability and administration.
   
+## Service Boundaries (Lab 2)
+![Architecture_new](./Check_PAD.drawio.png)
+
+1. Implement **read replication** for user data by setting up two dedicated read replicas to distribute and balance query load.
+2. Use a **Two-Phase Commit (2PC)** mechanism, managed by a Transaction Coordinator within the API Gateway, to ensure safe and atomic update of user data.
+3. Integrate a **Data Warehouse** to enable comprehensive managing of user reservations and analyzing parking slots.
+4. Deploy the **ELK stack** to centralize and process logs across all system instances, enhancing monitoring and troubleshooting capabilities.
+5. Deploy a Redis cluster to enable sharded caching of user data using consistent hashing.
