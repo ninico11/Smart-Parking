@@ -94,9 +94,6 @@ def signout():
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
 
-    # Leave the WebSocket room when the user logs out
-    socketio.emit('leave_region', {'region': user.address}, room=user_id)
-
     return jsonify({"message": "User signed out successfully"}), 200
 
 
@@ -260,10 +257,10 @@ def send_notification(region):
     if not message:
         return jsonify({'error': 'Message is required'}), 400
 
-    # Fetch users from the database based on region
-    users_in_region = User.query.filter_by(address=region).all()
-    if not users_in_region:
-        return jsonify({'error': 'No users found in this region'}), 404
+    # # Fetch users from the database based on region
+    # users_in_region = User.query.filter_by(address=region).all()
+    # if not users_in_region:
+    #     return jsonify({'error': 'No users found in this region'}), 404
 
     # Broadcast the message to the WebSocket room for the region
     socketio.emit('notification', {'message': message}, room=region)

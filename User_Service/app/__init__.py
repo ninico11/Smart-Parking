@@ -23,17 +23,16 @@ def create_app():
     app = Flask(__name__)
 
     # Database setup
-    database_url = os.getenv("DATABASE_URL", 'postgresql://user:password@localhost:1234/postgres')
+    database_url = os.getenv("DATABASE_URL", 'postgresql://user:password@db1/postgres')
     
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    app.config["SQLALCHEMY_BINDS"] = {"db1": database_url}
     db.init_app(app)
 
     from app.user_apis import user_blueprint
     app.register_blueprint(user_blueprint)
 
     with app.app_context():
-        db.create_all(bind_key=[None, "db1"])
+        db.create_all()
 
     # Register API specs
     api.register(app)
@@ -46,24 +45,8 @@ def create_app():
     # Register with service discovery
     address = os.getenv("USER_SERVICE_ADDRESS", 'http://localhost')
     port = os.getenv("USER_SERVICE_PORT", '8080')
-    name = os.getenv("USER_SERVICE_NAME", 'user-service-1')
+    name = os.getenv("USER_SERVICE_NAME", 'no')
     service_discovery_url = os.getenv('SERVICE_DISCOVERY_HOST', 'localhost:3000')
-
-    try:
-        response = requests.get(
-            url=f"http://{service_discovery_url}/get-service",
-            params={"name": name}
-        )
-
-        if response.status_code == 200 and response.json():
-            logging.info("Service already registered.")
-            logging.info(response.json())
-            return app
-        elif response.status_code == 404:
-            logging.info("Service is not registered.")
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error connecting to service discovery: {e}")
-        sys.exit(1)
 
     try:
         response = requests.post(

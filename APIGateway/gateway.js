@@ -13,21 +13,17 @@ const roundRobinIndex = {};
 
 // Rate limiter settings (can be adjusted dynamically)
 const rateLimiterConfig = {
-    'parking': { max: 10, windowMs: 60 * 1000 }, // 1 minute, 10 requests
-    'user': { max: 15, windowMs: 60 * 1000 }     // 1 minute, 15 requests
+    'parking': { max: 1, windowMs: 60 * 1000 }, // 10 requests per minute
+    'user': { max: 15, windowMs: 60 * 1000 }     // 15 requests per minute
 };
 
-/**
- * Creates a rate limiter dynamically based on service name.
- * @param {string} serviceName The base service name (e.g., 'user', 'parking').
- * @returns {Object} Rate limiter middleware.
- */
-function createRateLimiter(serviceName) {
-    const { max, windowMs } = rateLimiterConfig[serviceName] || { max: 20, windowMs: 60 * 1000 };
-    return rateLimit({
-        windowMs,
-        max,
-        message: `Too many requests to the ${serviceName} service. Please try again later.`
+// Create rate limiters once and store them in a map
+const rateLimiters = {};
+for (const [serviceName, config] of Object.entries(rateLimiterConfig)) {
+    rateLimiters[serviceName] = rateLimit({
+        windowMs: config.windowMs,
+        max: config.max,
+        message: `Too many requests to the ${serviceName} service. Please try again later.`,
     });
 }
 
@@ -44,11 +40,7 @@ app.get('/status', (req, res) => {
     res.json({ status: 'API Gateway is running', timestamp: new Date().toISOString() });
 });
 
-/**
- * Discover service replicas dynamically from the Service Discovery API.
- * @param {string} servicePrefix The prefix of the service to discover (e.g., 'user', 'parking').
- * @returns {Array} List of service replicas.
- */
+// Discover service replicas dynamically from the Service Discovery API
 async function discoverService(servicePrefix) {
     try {
         const response = await axios.get(`http://${SERVICE_DISCOVERY}/get-service?name=${servicePrefix}`);
@@ -63,12 +55,7 @@ async function discoverService(servicePrefix) {
     }
 }
 
-/**
- * Select the next replica in a round-robin manner.
- * @param {string} servicePrefix The prefix of the service.
- * @param {Array} replicas List of service replicas.
- * @returns {string} The URL of the next replica.
- */
+// Select the next replica in a round-robin manner
 function getNextReplica(servicePrefix, replicas) {
     if (!roundRobinIndex[servicePrefix]) {
         roundRobinIndex[servicePrefix] = 0; // Initialize the index
@@ -84,13 +71,9 @@ function getNextReplica(servicePrefix, replicas) {
     return `${address}:${servicePort}`;
 }
 
-/**
- * Middleware for dynamic proxying with load balancing across replicas.
- * @param {string} servicePrefix The prefix of the service (e.g., 'user', 'parking').
- * @returns {function} Middleware function to handle the proxying.
- */
+// Middleware for dynamic proxying with load balancing across replicas
 function createDynamicProxyMiddleware(servicePrefix) {
-    const limiter = createRateLimiter(servicePrefix); // Create a rate limiter for the service
+    const limiter = rateLimiters[servicePrefix]; // Use pre-created rate limiter
 
     return async (req, res, next) => {
         try {
@@ -122,7 +105,8 @@ function createDynamicProxyMiddleware(servicePrefix) {
 const servicePrefixes = ['user', 'parking']; // Add more prefixes as needed
 
 servicePrefixes.forEach((prefix) => {
-    app.use(`/${prefix}`, createDynamicProxyMiddleware(prefix));
+    // Apply the rate limiter before the proxy middleware
+    app.use(`/${prefix}`, rateLimiters[prefix], createDynamicProxyMiddleware(prefix));
 });
 
 // Start the API Gateway

@@ -28,24 +28,8 @@ def create_app():
     # Load address and port from environment variables
     address = os.getenv("PARKING_SERVICE_ADDRESS", 'http://localhost')
     port = os.getenv("PARKING_SERVICE_PORT", '8001')
-    name = os.getenv("PARKING_SERVICE_NAME", 'parking-service-1')
+    name = os.getenv("PARKING_SERVICE_NAME", 'no')
     service_discovery_url = os.getenv('SERVICE_DISCOVERY_HOST', 'localhost:3000')
-
-    # Check if the service is already registered
-    try:
-        response = requests.get(
-            url=f"http://{service_discovery_url}/get-service",
-            params={"name": name}
-        )
-
-        if response.status_code == 200 and response.json():
-            logging.info("Service already registered.")
-            logging.info(response.json())
-            return app  # Service is already registered, return the app
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error connecting to service discovery: {e}")
-        sys.exit(1)
-
     # Register the service if not already registered
     try:
         response = requests.post(

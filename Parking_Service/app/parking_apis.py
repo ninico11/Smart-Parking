@@ -2,9 +2,11 @@ from flask import Blueprint, request, jsonify
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 import datetime
+import os
 
 # MongoDB setup (you need to configure this with your actual MongoDB connection string)
-client = MongoClient('mongodb://localhost:27000/')
+mongo_uri = os.getenv("MONGO_URI", "mongodb://mongo:27017/")
+client = MongoClient(mongo_uri)
 db = client['parking_db']
 parking_collection = db['parking_lots']
 reservations_collection = db['reservations']

@@ -4,7 +4,9 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - SERVICE_DISCOVERY_PORT = 3000
+      - SERVICE_DISCOVERY_PORT = 3000'
+    networks:
+      - app-network
 
   gateway:
     build: ./APIGateway
@@ -15,6 +17,8 @@ services:
       - API_GATEWAY_PORT = 5000
     depends_on:
       - service-discovery
+    networks:
+      - app-network
 
   user-service-1:
     build: ./User_Service
@@ -23,10 +27,15 @@ services:
     environment:
       - USER_SERVICE_ADDRESS=http://user-service-1
       - USER_SERVICE_PORT=8080
-      - USER_SERVICE_NAME = user-service-1
+      - DATABASE_URL=postgresql://user:password@postgres:5432/postgres
+      - USER_SERVICE_NAME=userservice1
       - SERVICE_DISCOVERY_HOST=service-discovery:3000
     depends_on:
       - service-discovery
+      - postgres
+      - redis
+    networks:
+      - app-network
   
   user-service-2:
     build: ./User_Service
@@ -35,10 +44,16 @@ services:
     environment:
       - USER_SERVICE_ADDRESS=http://user-service-2
       - USER_SERVICE_PORT=8080
-      - USER_SERVICE_NAME = user-service-2
+      - DATABASE_URL=postgresql://user:password@postgres:5432/postgres
+      - USER_SERVICE_NAME=userservice2
       - SERVICE_DISCOVERY_HOST=service-discovery:3000
     depends_on:
       - service-discovery
+      - postgres
+      - redis
+    networks:
+      - app-network
+
 
   parking-service-1:
     build: ./Parking_Service
@@ -47,11 +62,14 @@ services:
     environment:
       - PARKING_SERVICE_ADDRESS=http://parking-service-1
       - PARKING_SERVICE_PORT=8000
-      # - DATABASE_URL=postgresql://user:password@postgres:1234/postgres_user
-      - PARKING_SERVICE_NAME = parking-service-1
+      - PARKING_SERVICE_NAME=parkingservice1
       - SERVICE_DISCOVERY_HOST=service-discovery:3000
+      - MONGO_URI=mongodb://mongo:27017 
     depends_on:
       - service-discovery
+      - mongo
+    networks:
+      - app-network
 
   parking-service-2:
     build: ./Parking_Service
@@ -60,30 +78,52 @@ services:
     environment:
       - PARKING_SERVICE_ADDRESS=http://parking-service-2
       - PARKING_SERVICE_PORT=8000
-      - PARKING_SERVICE_NAME = parking-service-2
+      - PARKING_SERVICE_NAME=parkingservice2
       - SERVICE_DISCOVERY_HOST=service-discovery:3000
+      - MONGO_URI=mongodb://mongo:27017
     depends_on:
       - service-discovery
+      - mongo
+    networks:
+      - app-network
 
-#   postgres:
-#     image: postgres:12.20-alpine3.20
-#     environment:
-#       POSTGRES_USER: user
-#       POSTGRES_PASSWORD: password
-#       POSTGRES_DB: postgres_user
-#     volumes:
-#       - postgres_data:/var/lib/postgresql/data
-#     ports:
-#       - "1234:5432"
+  postgres:
+    image: postgres:12.20-alpine3.20
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: userdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    expose:
+      - '5432'  
+    networks:
+      - app-network
+  
 
-#   redis:
-#     image: redis:latest
-#     ports:
-#       - "6379:6379"
-#   mongo:
-#     image: mongo:latest
-#     ports:
-#       - "27000:27017"
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
 
-# volumes:
-#   postgres_data:
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27000:27017"
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  mongo-data:
+
+networks:
+  app-network:
+    driver: bridge
