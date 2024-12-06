@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service-1:8080', 'user-service-2:8080']
+  - job_name: 'parking-service'
+    static_configs:
+      - targets: ['parking-service-1:8000', 'parking-service-2:8000']

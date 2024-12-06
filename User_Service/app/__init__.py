@@ -3,72 +3,58 @@ from dotenv import load_dotenv
 import os
 from flask_jwt_extended import JWTManager
 from datetime import timedelta
-from flask_pydantic_spec import FlaskPydanticSpec
 import requests
-import sys
-import logging
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO
-
+from prometheus_flask_exporter import PrometheusMetrics
 # Load environment variables
 load_dotenv()
 
+# Initialize extensions
 db = SQLAlchemy()
-api = FlaskPydanticSpec('flask')
-
-# Initialize SocketIO with threading mode
+jwt = JWTManager()
 socketio = SocketIO(cors_allowed_origins="*", async_mode='threading')
 
 def create_app():
     app = Flask(__name__)
+    metrics = PrometheusMetrics(app)
+    # Application configurations
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", 'postgresql://user:password@db1/postgres')
+    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", 'supersecretkey')
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 
-    # Database setup
-    database_url = os.getenv("DATABASE_URL", 'postgresql://user:password@db1/postgres')
-    
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    # Initialize extensions with app
     db.init_app(app)
+    jwt.init_app(app)
+    socketio.init_app(app)
 
+    # Register blueprints (e.g., user and parking services)
     from app.user_apis import user_blueprint
     app.register_blueprint(user_blueprint)
 
+    # Create database tables if they don't exist
     with app.app_context():
         db.create_all()
-
-    # Register API specs
-    api.register(app)
-
-    # JWT setup
-    app.config["JWT_SECRET_KEY"] = 'secret_key'
-    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
-    JWTManager(app)
-
-    # Register with service discovery
-    address = os.getenv("USER_SERVICE_ADDRESS", 'http://localhost')
-    port = os.getenv("USER_SERVICE_PORT", '8080')
-    name = os.getenv("USER_SERVICE_NAME", 'no')
-    service_discovery_url = os.getenv('SERVICE_DISCOVERY_HOST', 'localhost:3000')
-
+        
+    # Service discovery registration
     try:
+        address = os.getenv("USER_SERVICE_ADDRESS", 'http://localhost')
+        port = os.getenv("USER_SERVICE_PORT", '8080')
+        name = os.getenv("USER_SERVICE_NAME", 'no') 
+        service_discovery_url = os.getenv('SERVICE_DISCOVERY_HOST', 'localhost:3000')
+        
+        # Register this service with the service discovery
         response = requests.post(
             url=f"http://{service_discovery_url}/add-service",
             json={"name": name, "address": address, "port": port}
         )
-
         if response.status_code == 201:
-            logging.info("Service registered successfully!")
+            print("Service registered successfully!")
         elif response.status_code == 409:
-            logging.warning("Here is json")
-            logging.warning(response.json())
-            logging.warning("Service already registered. Skipping registration.")
+            print("Service already registered.")
         else:
-            logging.error(f"Failed to register service: {response.status_code} - {response.text}")
-            sys.exit(1)
-
+            print(f"Failed to register service: {response.status_code} - {response.text}")
     except requests.exceptions.RequestException as e:
-        logging.error(f"Error during service registration: {e}")
-        sys.exit(1)
-
-    # Initialize SocketIO with the app
-    socketio.init_app(app)
+        print(f"Error during service registration: {e}")
 
     return app

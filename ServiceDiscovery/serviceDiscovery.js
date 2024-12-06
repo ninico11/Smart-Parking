@@ -108,8 +108,9 @@ setInterval(async () => {
                             serviceName, 
                             serviceAddress, 
                             servicePort, 
-                            'status',
-                            'GET'
+                            'api/status',
+                            'GET',
+                            servicesRegistry
                         );
                         return service;  // Keep the service if the status check is successful
                     } catch (error) {

@@ -7,6 +7,10 @@ Flask-Cors==4.0.1
 Werkzeug==3.0.4
 Flask-SocketIO
 redis
-flask_jwt_extended
+flask_jwt_extended==4.6.0
 psycopg2-binary
 flask_pydantic_spec
+prometheus_flask_exporter
+PyJWT==2.9.0
+redis-py-cluster
+setuptools

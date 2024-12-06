@@ -3,6 +3,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 import datetime
 import os
+from prometheus_flask_exporter import Counter
 
 # MongoDB setup (you need to configure this with your actual MongoDB connection string)
 mongo_uri = os.getenv("MONGO_URI", "mongodb://mongo:27017/")
@@ -11,10 +12,15 @@ db = client['parking_db']
 parking_collection = db['parking_lots']
 reservations_collection = db['reservations']
 
+request_counter = Counter(
+    'app_requests_total', 'Total number of requests', ['method', 'endpoint']
+)
+
 parking_blueprint = Blueprint('parking_apis', __name__)
 
-@parking_blueprint.route('/status', methods=['GET'])
+@parking_blueprint.route('/api/status', methods=['GET'])
 def parking_service_status():
+    request_counter.labels(method='GET', endpoint='/api/status').inc()
     try:
         # Optionally check MongoDB connection here to ensure the service is operational
         db_stats = parking_collection.database.command("ping")
@@ -31,6 +37,7 @@ def parking_service_status():
 # Retrieve the list of available parking lots with their status
 @parking_blueprint.route('/api/parking/lots', methods=['GET'])
 def get_parking_lots():
+    request_counter.labels(method='GET', endpoint='/api/parking/lots').inc()
     parking_lots = list(parking_collection.find({}, {'_id': 1, 'name': 1, 'status': 1, 'location': 1}))
     return jsonify([{
         'id': str(parking_lot['_id']),

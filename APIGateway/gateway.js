@@ -50,7 +50,7 @@ async function discoverService(servicePrefix) {
             throw new Error(`No replicas found for ${servicePrefix}`);
         }
     } catch (error) {
-        console.error(`Error discovering ${servicePrefix}: ${error.message}`);
+        console.error(`Error discovering ${servicePrefix}: ${error.message}: http://${SERVICE_DISCOVERY}/get-service?name=${servicePrefix}`);
         return [];
     }
 }
@@ -83,7 +83,7 @@ function createDynamicProxyMiddleware(servicePrefix) {
             }
 
             const targetUrl = getNextReplica(servicePrefix, replicas);
-            console.log(`Proxying ${servicePrefix} request to: ${targetUrl}`);
+            console.log(`Proxying ${servicePrefix} request to: ${targetUrl}: http://${SERVICE_DISCOVERY}/get-service?name=${servicePrefix}`);
 
             createProxyMiddleware({
                 target: targetUrl,
@@ -91,7 +91,7 @@ function createDynamicProxyMiddleware(servicePrefix) {
                 pathRewrite: { [`^/${servicePrefix}`]: '' }, // e.g., /user -> /
                 proxyTimeout: TIMEOUT,
                 onProxyReq: (proxyReq, req, res) => {
-                    req.setTimeout(TIMEOUT);
+                    req.setTimeout(TIMEOUT);           
                 }
             })(req, res, next);
         } catch (error) {
@@ -100,6 +100,70 @@ function createDynamicProxyMiddleware(servicePrefix) {
         }
     };
 }
+
+// Saga orchestrator for updating user profile
+// app.put('/user/api/users/profile/update', async (req, res) => {
+//     try {
+//         const authorizationHeader = req.headers['authorization'];
+
+//         // Discover user service replicas
+//         const replicas = await discoverService('user');
+//         if (replicas.length === 0) {
+//             return res.status(503).send('User Service is unavailable');
+//         }
+
+//         // Select a replica
+//         const targetUrl = getNextReplica('user', replicas);
+
+//         // Step 1: Get current user profile data
+//         const currentProfileResponse = await axios.get(`${targetUrl}/api/users/profile`, {
+//             headers: {
+//                 Authorization: authorizationHeader
+//             },
+//             timeout: TIMEOUT
+//         });
+
+//         const currentProfileData = currentProfileResponse.data;
+
+//         // Step 2: Update user profile
+//         const updateResponse = await axios.put(`${targetUrl}/api/users/profile/update`, req.body, {
+//             headers: {
+//                 Authorization: authorizationHeader
+//             },
+//             timeout: TIMEOUT
+//         });
+
+//         // If all steps are successful, commit the Saga
+//         res.status(200).json({ message: 'Profile updated successfully' });
+
+//     } catch (error) {
+//         // If any step fails, perform compensating transactions
+//         console.error('Error during profile update Saga:', error);
+
+//         // Discover user service replicas
+//         const replicas = await discoverService('user');
+//         if (replicas.length === 0) {
+//             console.error('User Service is unavailable for compensating transaction');
+//         } else {
+//             const targetUrl = getNextReplica('user', replicas);
+
+//             // Compensating Step: Restore the user profile to its previous state
+//             try {
+//                 await axios.put(`${targetUrl}/api/users/profile/update`, currentProfileData, {
+//                     headers: {
+//                         Authorization: authorizationHeader
+//                     },
+//                     timeout: TIMEOUT
+//                 });
+//             } catch (compensateError) {
+//                 // Log or handle the error
+//                 console.error('Error during compensating transaction:', compensateError);
+//             }
+//         }
+
+//         res.status(500).json({ error: 'Failed to update profile' });
+//     }
+// });
 
 // Setup dynamic proxies for known service prefixes
 const servicePrefixes = ['user', 'parking']; // Add more prefixes as needed

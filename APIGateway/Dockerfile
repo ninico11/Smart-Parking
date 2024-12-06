@@ -6,7 +6,7 @@ WORKDIR /usr/src/app
 
 # Initialize npm and install dependencies
 RUN npm init -y
-RUN npm install express axios express-rate-limit dotenv @grpc/grpc-js @grpc/proto-loader lodash
+RUN npm install express axios express-rate-limit dotenv @grpc/grpc-js @grpc/proto-loader lodash jsonwebtoken
 
 # Copy the rest of the application files
 COPY . .

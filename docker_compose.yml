@@ -4,17 +4,17 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - SERVICE_DISCOVERY_PORT = 3000'
+      - SERVICE_DISCOVERY_PORT=3000
     networks:
       - app-network
 
   gateway:
     build: ./APIGateway
     ports:
-      - "5000:5000"
+      - "5001:5001"
     environment:
       - SERVICE_DISCOVERY_HOST=service-discovery:3000
-      - API_GATEWAY_PORT = 5000
+      - API_GATEWAY_PORT=5001
     depends_on:
       - service-discovery
     networks:
@@ -27,16 +27,17 @@ services:
     environment:
       - USER_SERVICE_ADDRESS=http://user-service-1
       - USER_SERVICE_PORT=8080
-      - DATABASE_URL=postgresql://user:password@postgres:5432/postgres
+      - DATABASE_URL=postgresql://postgres:postgres@pg-0,pg-1,pg-2:5432/userdb?target_session_attrs=read-write&connect_timeout=10
       - USER_SERVICE_NAME=userservice1
       - SERVICE_DISCOVERY_HOST=service-discovery:3000
     depends_on:
       - service-discovery
-      - postgres
-      - redis
+      - pg-0
+      - pg-1
+      - pg-2
     networks:
       - app-network
-  
+
   user-service-2:
     build: ./User_Service
     ports:
@@ -44,16 +45,16 @@ services:
     environment:
       - USER_SERVICE_ADDRESS=http://user-service-2
       - USER_SERVICE_PORT=8080
-      - DATABASE_URL=postgresql://user:password@postgres:5432/postgres
+      - DATABASE_URL=postgresql://postgres:postgres@pg-0,pg-1,pg-2:5432/userdb?target_session_attrs=read-write&connect_timeout=10
       - USER_SERVICE_NAME=userservice2
       - SERVICE_DISCOVERY_HOST=service-discovery:3000
     depends_on:
       - service-discovery
-      - postgres
-      - redis
+      - pg-0
+      - pg-1
+      - pg-2
     networks:
       - app-network
-
 
   parking-service-1:
     build: ./Parking_Service
@@ -64,7 +65,7 @@ services:
       - PARKING_SERVICE_PORT=8000
       - PARKING_SERVICE_NAME=parkingservice1
       - SERVICE_DISCOVERY_HOST=service-discovery:3000
-      - MONGO_URI=mongodb://mongo:27017 
+      - MONGO_URI=mongodb://mongo:27017
     depends_on:
       - service-discovery
       - mongo
@@ -87,28 +88,89 @@ services:
     networks:
       - app-network
 
-  postgres:
-    image: postgres:12.20-alpine3.20
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: userdb
+  prometheus:
+    image: prom/prometheus:latest
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - E:\Labs\Smart-Parking Folder\Smart-Parking\prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - user-service-1
+      - user-service-2
+      - parking-service-1
+      - parking-service-2
+    networks:
+      - app-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=yourpassword
+    depends_on:
+      - prometheus
+    networks:
+      - app-network
+
+  pg-0:
+    image: docker.io/bitnami/postgresql-repmgr:17
     ports:
       - "5432:5432"
-    expose:
-      - '5432'  
+    volumes:
+      - pg_0_data:/bitnami/postgresql
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=postgres
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRESQL_DATABASE=userdb
+      - REPMGR_PASSWORD=postgres
+      - REPMGR_PRIMARY_HOST=pg-0
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_PARTNER_NODES=pg-0,pg-1,pg-2:5432
+      - REPMGR_NODE_NAME=pg-0
+      - REPMGR_NODE_NETWORK_NAME=pg-0
+      - REPMGR_PORT_NUMBER=5432
     networks:
       - app-network
-  
-
-  redis:
-    image: redis:latest
+  pg-1:
+    image: docker.io/bitnami/postgresql-repmgr:17
     ports:
-      - "6379:6379"
+      - "5433:5432"
+    volumes:
+      - pg_1_data:/bitnami/postgresql
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=postgres
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRESQL_DATABASE=userdb
+      - REPMGR_PASSWORD=postgres
+      - REPMGR_PRIMARY_HOST=pg-0
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_PARTNER_NODES=pg-0,pg-1,pg-2:5432
+      - REPMGR_NODE_NAME=pg-1
+      - REPMGR_NODE_NETWORK_NAME=pg-1
+      - REPMGR_PORT_NUMBER=5432
     networks:
       - app-network
+  pg-2:
+    image: docker.io/bitnami/postgresql-repmgr:17
+    ports:
+      - "5434:5432"
+    volumes:
+      - pg_2_data:/bitnami/postgresql
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=postgres
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRESQL_DATABASE=userdb
+      - REPMGR_PASSWORD=postgres
+      - REPMGR_PRIMARY_HOST=pg-0
+      - REPMGR_PRIMARY_PORT=5432
+      - REPMGR_PARTNER_NODES=pg-0,pg-1,pg-2:5432
+      - REPMGR_NODE_NAME=pg-2
+      - REPMGR_NODE_NETWORK_NAME=pg-2
+      - REPMGR_PORT_NUMBER=5432
 
   mongo:
     image: mongo:latest
@@ -120,8 +182,106 @@ services:
     networks:
       - app-network
 
+  ud-redis-node-1:
+    image: bitnami/redis-cluster:latest
+    container_name: ud-redis-node-1
+    environment:
+      - REDIS_NODES=ud-redis-node-1,ud-redis-node-2,ud-redis-node-3,ud-redis-node-4,ud-redis-node-5,ud-redis-node-6
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    tmpfs:
+      - /bitnami/redis
+
+  ud-redis-node-2:
+    image: bitnami/redis-cluster:latest
+    container_name: ud-redis-node-2
+    environment:
+      - REDIS_NODES=ud-redis-node-1,ud-redis-node-2,ud-redis-node-3,ud-redis-node-4,ud-redis-node-5,ud-redis-node-6
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6380:6379"
+    networks:
+      - app-network
+    tmpfs:
+      - /bitnami/redis
+
+  ud-redis-node-3:
+    image: bitnami/redis-cluster:latest
+    container_name: ud-redis-node-3
+    environment:
+      - REDIS_NODES=ud-redis-node-1,ud-redis-node-2,ud-redis-node-3,ud-redis-node-4,ud-redis-node-5,ud-redis-node-6
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6381:6379"
+    networks:
+      - app-network
+    tmpfs:
+      - /bitnami/redis
+
+  ud-redis-node-4:
+    image: bitnami/redis-cluster:latest
+    container_name: ud-redis-node-4
+    environment:
+      - REDIS_NODES=ud-redis-node-1,ud-redis-node-2,ud-redis-node-3,ud-redis-node-4,ud-redis-node-5,ud-redis-node-6
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6382:6379"
+    networks:
+      - app-network
+    tmpfs:
+      - /bitnami/redis
+
+  ud-redis-node-5:
+    image: bitnami/redis-cluster:latest
+    container_name: ud-redis-node-5
+    environment:
+      - REDIS_NODES=ud-redis-node-1,ud-redis-node-2,ud-redis-node-3,ud-redis-node-4,ud-redis-node-5,ud-redis-node-6
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6383:6379"
+    networks:
+      - app-network
+    tmpfs:
+      - /bitnami/redis
+
+  ud-redis-node-6:
+    image: bitnami/redis-cluster:latest
+    container_name: ud-redis-node-6
+    environment:
+      - REDIS_NODES=ud-redis-node-1,ud-redis-node-2,ud-redis-node-3,ud-redis-node-4,ud-redis-node-5,ud-redis-node-6
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "6384:6379"
+    networks:
+      - app-network
+    tmpfs:
+      - /bitnami/redis
+
+  redis-cluster-init-node:
+    container_name: redis-cluster-init-node
+    build:
+      context: ./Redis_Cluster
+      dockerfile: Dockerfile
+    depends_on:
+      - ud-redis-node-1
+      - ud-redis-node-2
+      - ud-redis-node-3
+      - ud-redis-node-4
+      - ud-redis-node-5
+      - ud-redis-node-6
+    networks:
+      - app-network
+
 volumes:
-  postgres_data:
+  pg_0_data:
+    driver: local
+  pg_1_data:
+    driver: local
+  pg_2_data:
+    driver: local
   mongo-data:
 
 networks:
